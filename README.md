@@ -1,11 +1,31 @@
-# obeythetestinggoat
+# obeythetestinggoat on `Docker` & `pytest`
 
-My workings from https://www.obeythetestinggoat.com/book/preface.html
+I'm adapting [obeythetestinggoat](https://www.obeythetestinggoat.com) for `Docker` and `pytest`
 
-:hammer: Install
+## Install
 
-Via [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/):
+Clone this repository, install [docker](https://docs.docker.com/get-docker/) and run ...
 
 ```bash
-conda env create -f environement.yml
+docker-compose build
+```
+
+... to download and install all of the required libraries (`Python`, `Django`, `Selenium` etc.)
+
+Run the `Django` server via ...
+
+```bash
+docker-compose run --rm --name goat-web web python manage.py runserver 0.0.0.0:8000
+```
+
+... launch a shell in the same container as the running server so you can execute tests against it ...
+
+```bash
+docker exec -it goat-web bash
+```
+
+... and finally run your various tests via ...
+
+```bash
+pytest
 ```
