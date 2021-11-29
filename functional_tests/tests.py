@@ -1,3 +1,4 @@
+import re
 import socket
 import time
 
@@ -18,12 +19,16 @@ def _get_web_container_ipaddess() -> str:
     return host_ipaddress
 
 
-@pytest.fixture
-def webdriver_init() -> webdriver.Remote:
-    browser = webdriver.Remote(
+def _get_remote_webdriver() -> webdriver.Remote:
+    return webdriver.Remote(
         command_executor="http://selenium:4444/wd/hub",
         desired_capabilities=DesiredCapabilities.CHROME,
     )
+
+
+@pytest.fixture
+def webdriver_init() -> webdriver.Remote:
+    browser = _get_remote_webdriver()
     yield browser
     browser.quit()
 
@@ -52,7 +57,7 @@ def live_server_at_web_container_ipaddress() -> LiveServer:
 
 
 @pytest.mark.django_db
-def test_can_start_a_list_and_retrieve_it_later(
+def test_can_start_a_list_for_one_user(
     webdriver_init: webdriver.Remote,
     live_server_at_web_container_ipaddress: LiveServer,
 ) -> None:
@@ -91,11 +96,61 @@ def test_can_start_a_list_and_retrieve_it_later(
     wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
     wait_for_row_in_list_table(browser, "2: Use peacock feathers to make a fly")
 
-    # Edith wonders whether the site will remember her list. Then she sees
-    # that the site has generated a unique URL for her -- there is some
-    # explanatory text to that effect.
-    pytest.fail("Finish the test!")
-
-    # She visits that URL - her to-do list is still there.
-
     # Satisfied, she goes back to sleep
+
+
+@pytest.mark.django_db
+def test_multiple_users_can_start_lists_at_different_urls(
+    webdriver_init: webdriver.Remote,
+    live_server_at_web_container_ipaddress: LiveServer,
+) -> None:
+    browser = webdriver_init
+    live_server_url = str(live_server_at_web_container_ipaddress)
+
+    # Edith starts a new to-do list
+    browser.get(live_server_url)
+    inputbox = browser.find_element_by_id("id_new_name")
+    inputbox.send_keys("Buy peacock feathers")
+    inputbox.send_keys(Keys.ENTER)
+    wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
+
+    # She notices that her list has a unique URL
+    edith_list_url = browser.current_url
+    assert re.match(
+        "/lists/.+", edith_list_url
+    ), f"Regex didn't match: 'lists/.+' not found in {edith_list_url}"
+
+    # Now a new user, Francis, comes along to the site.
+
+    ## We use a new browser session to make sure that no information
+    ## of Edith's is coming through from cookies etc
+    browser.quit()
+    browser = _get_remote_webdriver()
+
+    # Francis visits the home page. There is no sign of Edith's
+    # list
+    browser.get(live_server_url)
+    page_text = browser.find_element_by_tag_name("body").text
+    assert "Buy peacock feathers" not in page_text
+    assert "make a fly" not in page_text
+
+    # Francis starts a list by entering a new item. He
+    # is less interesting than Edith...
+    inputbox = browser.find_element_by_id("id_new_item")
+    inputbox.send_keys("Buy milk")
+    inputbox.send_keys(Keys.ENTER)
+    wait_for_row_in_list_table("1: Buy milk")
+
+    # Francis gets his own unique URL
+    francis_list_url = browser.current_url
+    assert re.match(
+        "/lists/.+", francis_list_url
+    ), f"Regex didn't match: 'lists/.+' not found in {francis_list_url}"
+    assert francis_list_url != edith_list_url
+
+    # Again, there is no trace of Edith's list
+    page_text = browser.find_element_by_tag_name("body").text
+    assert "Buy peacock feathers" not in page_text
+    assert "Buy milk" in page_text
+
+    # Satisfied, they both go back to sleep
