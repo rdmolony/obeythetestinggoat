@@ -4,8 +4,12 @@ import time
 import pytest
 from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+
+MAX_WAIT = 10  # seconds
 
 
 def _get_web_container_ipaddess() -> str:
@@ -24,10 +28,20 @@ def webdriver_init() -> webdriver.Remote:
     browser.quit()
 
 
-def check_for_row_in_list_table(browser: webdriver.Remote, row_text: str) -> None:
-    table = browser.find_element_by_id("id_list_table")
-    rows = table.find_elements_by_tag_name("tr")
-    assert row_text in [row.text for row in rows]
+def wait_for_row_in_list_table(browser: webdriver.Remote, row_text: str) -> None:
+    start_time = time.time()
+    while True:
+        try:
+            table = browser.find_element_by_id("id_list_table")
+        except (AssertionError, WebDriverException) as e:
+            end_time = time.time()
+            if end_time - start_time > MAX_WAIT:
+                raise e
+            time.sleep(0.5)
+        else:
+            rows = table.find_elements_by_tag_name("tr")
+            assert row_text in [row.text for row in rows]
+            return
 
 
 @pytest.fixture
@@ -65,19 +79,17 @@ def test_can_start_a_list_and_retrieve_it_later(
     # When she hits enter, the page updates, and now the page lists
     # "1: Buy peacock feathers" as an item in a to-do list
     inputbox.send_keys(Keys.ENTER)
-    time.sleep(1)
-    check_for_row_in_list_table(browser, "1: Buy peacock feathers")
+    wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
 
     # There is still a text box inviting her to add another item. She
     # enters "Use peacock feathers to make a fly" (Edith is very methodical)
     inputbox = browser.find_element_by_id("id_new_name")
     inputbox.send_keys("Use peacock feathers to make a fly")
     inputbox.send_keys(Keys.ENTER)
-    time.sleep(1)
 
     # The page updates again, and now shows both items on her list
-    check_for_row_in_list_table(browser, "1: Buy peacock feathers")
-    check_for_row_in_list_table(browser, "2: Use peacock feathers to make a fly")
+    wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
+    wait_for_row_in_list_table(browser, "2: Use peacock feathers to make a fly")
 
     # Edith wonders whether the site will remember her list. Then she sees
     # that the site has generated a unique URL for her -- there is some
