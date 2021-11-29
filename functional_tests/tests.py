@@ -2,12 +2,13 @@ import socket
 import time
 
 import pytest
+from pytest_django.live_server_helper import LiveServer
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
-def _get_host_ipaddess() -> str:
+def _get_web_container_ipaddess() -> str:
     host_name = socket.gethostname()
     host_ipaddress = socket.gethostbyname(host_name)
     return host_ipaddress
@@ -29,16 +30,24 @@ def check_for_row_in_list_table(browser: webdriver.Remote, row_text: str) -> Non
     assert row_text in [row.text for row in rows]
 
 
+@pytest.fixture
+def live_server_at_web_container_ipaddress() -> LiveServer:
+    # Set host to externally accessible web server address
+    web_container_ip_address = _get_web_container_ipaddess()
+    return LiveServer(addr=web_container_ip_address)
+
+
 @pytest.mark.django_db
 def test_can_start_a_list_and_retrieve_it_later(
     webdriver_init: webdriver.Remote,
+    live_server_at_web_container_ipaddress: LiveServer,
 ) -> None:
     browser = webdriver_init
-    host_ipaddress = _get_host_ipaddess()
+    live_server_url = str(live_server_at_web_container_ipaddress)
 
     # Edith has heard about a cool new online to-do app. She goes
     # to check out its homepage
-    browser.get(f"http://{host_ipaddress}:8000")
+    browser.get(live_server_url)
 
     # She notices the page title and header mention to-do lists
     assert "To-Do" in browser.title
