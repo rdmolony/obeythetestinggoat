@@ -29,6 +29,7 @@ def check_for_row_in_list_table(browser: webdriver.Remote, row_text: str) -> Non
     assert row_text in [row.text for row in rows]
 
 
+@pytest.mark.django_db
 def test_can_start_a_list_and_retrieve_it_later(
     webdriver_init: webdriver.Remote,
 ) -> None:
