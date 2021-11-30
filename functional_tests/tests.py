@@ -101,9 +101,10 @@ def test_can_start_a_list_for_one_user(
 
 @pytest.mark.django_db
 def test_multiple_users_can_start_lists_at_different_urls(
+    webdriver_init: webdriver.Remote,
     live_server_at_web_container_ipaddress: LiveServer,
 ) -> None:
-    browser = _get_remote_webdriver()
+    browser = webdriver_init
     live_server_url = str(live_server_at_web_container_ipaddress)
 
     # Edith starts a new to-do list
@@ -121,10 +122,9 @@ def test_multiple_users_can_start_lists_at_different_urls(
 
     # Now a new user, Francis, comes along to the site.
 
-    ## We use a new browser session to make sure that no information
-    ## of Edith's is coming through from cookies etc
-    browser.quit()
-    browser = _get_remote_webdriver()
+    ## We simulate a new browser session to make sure that no information
+    ## of Edith's is coming through by deleting all cookies
+    browser.delete_all_cookies()
 
     # Francis visits the home page. There is no sign of Edith's
     # list
@@ -153,4 +153,3 @@ def test_multiple_users_can_start_lists_at_different_urls(
     assert "Buy milk" in page_text
 
     # Satisfied, they both go back to sleep
-    browser.quit()
