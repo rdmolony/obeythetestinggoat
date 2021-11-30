@@ -116,7 +116,7 @@ def test_multiple_users_can_start_lists_at_different_urls(
 
     # She notices that her list has a unique URL
     edith_list_url = browser.current_url
-    assert re.match(
+    assert re.search(
         "/lists/.+", edith_list_url
     ), f"Regex didn't match: 'lists/.+' not found in {edith_list_url}"
 
@@ -143,7 +143,7 @@ def test_multiple_users_can_start_lists_at_different_urls(
 
     # Francis gets his own unique URL
     francis_list_url = browser.current_url
-    assert re.match(
+    assert re.search(
         "/lists/.+", francis_list_url
     ), f"Regex didn't match: 'lists/.+' not found in {francis_list_url}"
     assert francis_list_url != edith_list_url
