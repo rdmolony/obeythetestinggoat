@@ -74,7 +74,7 @@ def test_can_start_a_list_for_one_user(
     assert "To-Do" in header_text
 
     # She is invited to enter a to-do item straight away
-    inputbox = browser.find_element_by_id("id_new_name")
+    inputbox = browser.find_element_by_id("id_new_item")
     assert inputbox.get_attribute("placeholder") == "Enter a to-do item"
 
     # She types "Buy peacock feathers" into a text box (Edith's hobby
@@ -88,7 +88,7 @@ def test_can_start_a_list_for_one_user(
 
     # There is still a text box inviting her to add another item. She
     # enters "Use peacock feathers to make a fly" (Edith is very methodical)
-    inputbox = browser.find_element_by_id("id_new_name")
+    inputbox = browser.find_element_by_id("id_new_item")
     inputbox.send_keys("Use peacock feathers to make a fly")
     inputbox.send_keys(Keys.ENTER)
 
@@ -101,15 +101,14 @@ def test_can_start_a_list_for_one_user(
 
 @pytest.mark.django_db
 def test_multiple_users_can_start_lists_at_different_urls(
-    webdriver_init: webdriver.Remote,
     live_server_at_web_container_ipaddress: LiveServer,
 ) -> None:
-    browser = webdriver_init
+    browser = _get_remote_webdriver()
     live_server_url = str(live_server_at_web_container_ipaddress)
 
     # Edith starts a new to-do list
     browser.get(live_server_url)
-    inputbox = browser.find_element_by_id("id_new_name")
+    inputbox = browser.find_element_by_id("id_new_item")
     inputbox.send_keys("Buy peacock feathers")
     inputbox.send_keys(Keys.ENTER)
     wait_for_row_in_list_table(browser, "1: Buy peacock feathers")
@@ -139,7 +138,7 @@ def test_multiple_users_can_start_lists_at_different_urls(
     inputbox = browser.find_element_by_id("id_new_item")
     inputbox.send_keys("Buy milk")
     inputbox.send_keys(Keys.ENTER)
-    wait_for_row_in_list_table("1: Buy milk")
+    wait_for_row_in_list_table(browser, "1: Buy milk")
 
     # Francis gets his own unique URL
     francis_list_url = browser.current_url
@@ -154,3 +153,4 @@ def test_multiple_users_can_start_lists_at_different_urls(
     assert "Buy milk" in page_text
 
     # Satisfied, they both go back to sleep
+    browser.quit()
