@@ -153,3 +153,37 @@ def test_multiple_users_can_start_lists_at_different_urls(
     assert "Buy milk" in page_text
 
     # Satisfied, they both go back to sleep
+
+
+@pytest.mark.django_db
+def test_layout_and_styling(
+    webdriver_init: webdriver.Remote,
+    live_server_at_web_container_ipaddress: LiveServer,
+) -> None:
+    browser = webdriver_init
+    live_server_url = str(live_server_at_web_container_ipaddress)
+
+    # Edith goes to the home page
+    browser.get(live_server_url)
+
+    window_width = 1024
+    window_height = 768
+    threshold = 10
+    half_window_width = window_width / 2
+
+    browser.set_window_size(window_width, window_height)
+
+    # She notices that the input box is nicely centered
+    inputbox = browser.find_element_by_id("id_new_item")
+    distance_to_inputbox_left_edge = inputbox.location["x"] + inputbox.size["width"] / 2
+    assert half_window_width - distance_to_inputbox_left_edge < threshold
+
+    # She starts a new list and sees the input is nicely
+    # centered there too
+    inputbox.send_keys("testing")
+    inputbox.send_keys(Keys.ENTER)
+    wait_for_row_in_list_table(browser, "1: testing")
+
+    inputbox = browser.find_element_by_id("id_new_item")
+    distance_to_inputbox_left_edge = inputbox.location["x"] + inputbox.size["width"] / 2
+    assert half_window_width - distance_to_inputbox_left_edge < threshold
