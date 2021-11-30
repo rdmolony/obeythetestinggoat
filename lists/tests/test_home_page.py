@@ -14,7 +14,7 @@ def test_root_url_resolves_to_home_page_view() -> None:
 
 
 @pytest.mark.django_db
-def test_home_page_returns_correct_html(client: Client) -> None:
+def test_returns_correct_html(client: Client) -> None:
     response = client.get("/")
 
     html = response.content.decode("utf8")
@@ -24,7 +24,7 @@ def test_home_page_returns_correct_html(client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_home_view_uses_home_template(client: Client) -> None:
+def test_uses_home_template(client: Client) -> None:
     response = client.get("/")
     assertTemplateUsed(response, 'home.html')
 
