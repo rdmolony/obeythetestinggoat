@@ -4,28 +4,21 @@ I'm adapting [obeythetestinggoat](https://www.obeythetestinggoat.com) for `Docke
 
 ## Install
 
-Clone this repository, install [docker](https://docs.docker.com/get-docker/) and run ...
+1. Clone this repository
+2. Install [docker](https://docs.docker.com/get-docker/)
+3. Run ...
 
-```bash
-docker-compose build
-```
+    ```bash
+    docker-compose run web bash
+    ```
 
-... to download and install all of the required libraries (`Python`, `Django`, `Selenium` etc.)
+    ... to:
 
-Run the `Django` server via ...
+    - Download and install all of the required libraries (`Python`, `Django`, `Selenium` etc.) into a container
+    - Launch & hook into a bash shell within it
 
-```bash
-docker-compose run --rm --name goat-web web python manage.py runserver 0.0.0.0:8000
-```
+    & run the test suite via ...
 
-... launch a shell in the same container as the running server so you can execute tests against it ...
-
-```bash
-docker exec -it goat-web bash
-```
-
-... and finally run your various tests via ...
-
-```bash
-pytest
-```
+    ```bash
+    pytest
+    ```
