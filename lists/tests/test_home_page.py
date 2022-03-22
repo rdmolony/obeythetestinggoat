@@ -8,11 +8,6 @@ from lists.models import Item
 from lists.views import home_page
 
 
-def test_root_url_resolves_to_home_page_view() -> None:
-    found = resolve("/")
-    assert found.func == home_page
-
-
 @pytest.mark.django_db
 def test_returns_correct_html(client: Client) -> None:
     response = client.get("/")
