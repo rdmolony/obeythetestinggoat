@@ -187,3 +187,4 @@ def test_layout_and_styling(
     inputbox = browser.find_element_by_id("id_new_item")
     distance_to_inputbox_left_edge = inputbox.location["x"] + inputbox.size["width"] / 2
     assert half_window_width - distance_to_inputbox_left_edge < threshold
+    
