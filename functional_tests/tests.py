@@ -1,3 +1,4 @@
+import os
 import re
 import socket
 import time
@@ -50,19 +51,22 @@ def wait_for_row_in_list_table(browser: webdriver.Remote, row_text: str) -> None
 
 
 @pytest.fixture
-def live_server_at_web_container_ipaddress() -> LiveServer:
-    # Set host to externally accessible web server address
+def live_server_url() -> str:
     web_container_ip_address = _get_web_container_ipaddess()
-    return LiveServer(addr=web_container_ip_address)
+    staging_server = os.environ.get("STAGING_SERVER")
+    if staging_server:
+        url = "http://" + staging_server
+    else:
+        url = str(LiveServer(addr=web_container_ip_address))
+    return url
 
 
 @pytest.mark.django_db
 def test_can_start_a_list_for_one_user(
     webdriver_init: webdriver.Remote,
-    live_server_at_web_container_ipaddress: LiveServer,
+    live_server_url: str,
 ) -> None:
     browser = webdriver_init
-    live_server_url = str(live_server_at_web_container_ipaddress)
 
     # Edith has heard about a cool new online to-do app. She goes
     # to check out its homepage
@@ -102,10 +106,9 @@ def test_can_start_a_list_for_one_user(
 @pytest.mark.django_db
 def test_multiple_users_can_start_lists_at_different_urls(
     webdriver_init: webdriver.Remote,
-    live_server_at_web_container_ipaddress: LiveServer,
+    live_server_url: str,
 ) -> None:
     browser = webdriver_init
-    live_server_url = str(live_server_at_web_container_ipaddress)
 
     # Edith starts a new to-do list
     browser.get(live_server_url)
@@ -158,10 +161,9 @@ def test_multiple_users_can_start_lists_at_different_urls(
 @pytest.mark.django_db
 def test_layout_and_styling(
     webdriver_init: webdriver.Remote,
-    live_server_at_web_container_ipaddress: LiveServer,
+    live_server_url: str,
 ) -> None:
     browser = webdriver_init
-    live_server_url = str(live_server_at_web_container_ipaddress)
 
     # Edith goes to the home page
     browser.get(live_server_url)
@@ -187,4 +189,4 @@ def test_layout_and_styling(
     inputbox = browser.find_element_by_id("id_new_item")
     distance_to_inputbox_left_edge = inputbox.location["x"] + inputbox.size["width"] / 2
     assert half_window_width - distance_to_inputbox_left_edge < threshold
-    
+
