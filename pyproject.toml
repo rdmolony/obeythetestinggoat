@@ -14,6 +14,7 @@ django = "^1.11"
 pygments = "*"
 docopt = "*"
 requests = "*"
+gunicorn = "^20.1.0"
 
 
 [tool.poetry.dev-dependencies]
