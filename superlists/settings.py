@@ -12,9 +12,21 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+import environ
+
+
+env = environ.Env(
+    # default to boolean False
+    DEBUG=(bool, False),
+    DJANGO_DEBUG_FALSE=(bool, False)
+)
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+DEBUG = env("DEBUG") # False if not foun in .env
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -65,12 +77,7 @@ WSGI_APPLICATION = 'superlists.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+DATABASES = {'default': env.db()}
 
 
 # Password validation
@@ -112,12 +119,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-if "DJANGO_DEBUG_FALSE" in os.environ:
+SECRET_KEY = env('SECRET_KEY')
+
+if env("DJANGO_DEBUG_FALSE"):
     DEBUG = False
-    SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
     ALLOWED_HOSTS = [os.environ["SITENAME"]]
 else:
     DEBUG = True
-    SECRET_KEY = "insecure-key-for-dev"
     ALLOWED_HOSTS = []
     
