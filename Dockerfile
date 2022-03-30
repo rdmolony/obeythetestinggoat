@@ -23,6 +23,6 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY pyproject.toml poetry.lock /app/
 RUN --mount=type=cache,target=/root/.cache \
-    poetry install --no-interaction
-
+    poetry install --no-interaction && \
+    pip install selenium==3 fabric # workaround as cryptography fails to install via poetry
 VOLUME /app/
